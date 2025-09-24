@@ -1,0 +1,41 @@
+
+// resource.rc
+#pragma code_page(65001)
+#include "resource.h"
+#include <winres.h>   // MinGW-safe (or use <winresrc.h> or <windows.h>)
+
+// ---------- Menu ----------
+IDR_MAINMENU MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&About...", IDM_ABOUT
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4 / Ctrl+Q", IDM_EXIT
+    END
+END
+
+// ---------- Accelerators ----------
+// Maps key combos to command IDs (same IDs as menu items).
+IDR_ACCEL ACCELERATORS
+BEGIN
+    "Q",   IDM_EXIT,  VIRTKEY, CONTROL     // Ctrl+Q
+    VK_F4, IDM_EXIT,  VIRTKEY, ALT         // Alt+F4
+    "A",   IDM_ABOUT, VIRTKEY, CONTROL     // Ctrl+A = About
+END
+
+// ---------- String table (optional) ----------
+STRINGTABLE
+BEGIN
+    IDS_APP_TITLE "Lab1 Window"
+END
+
+// ---------- Dialog ----------
+IDD_ABOUT DIALOGEX 0, 0, 180, 90
+STYLE DS_SETFONT | WS_CAPTION | WS_SYSMENU
+CAPTION "About Lab1"
+FONT 9, "Segoe UI"
+BEGIN
+    LTEXT       "WinAPI + MinGW + Wine demo", IDC_STATIC, 10,10,160,12
+    DEFPUSHBUTTON "OK", IDOK, 60,60,60,14
+END

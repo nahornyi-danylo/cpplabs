@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run lab1.exe",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\lab1.exe",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb.exe",
+      "preLaunchTask": "build"
+    }
+  ]
+}
