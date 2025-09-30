@@ -2,21 +2,8 @@
 #include <string>
 #include "resource.h"
 
-static HINSTANCE g_hInst = NULL;
+static HINSTANCE hInst;
 
-INT_PTR CALLBACK AboutDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam) {
-    switch (msg) {
-    case WM_INITDIALOG:
-        return TRUE;
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
-            EndDialog(hDlg, 0);
-            return TRUE;
-        }
-        break;
-    }
-    return FALSE;
-}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
@@ -24,9 +11,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         switch (LOWORD(wParam)) {
         case IDM_EXIT:
             DestroyWindow(hWnd);
-            return 0;
-        case IDM_ABOUT:
-            DialogBoxParamW(g_hInst, MAKEINTRESOURCEW(IDD_ABOUT), hWnd, AboutDlgProc, 0);
             return 0;
         default:
             break;
@@ -40,14 +24,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         RECT rect;
         GetClientRect(hWnd, &rect);
 
-        HDC hdcScreen = GetDC(NULL);
-        int deviceHeightMM = GetDeviceCaps(hdcScreen, VERTSIZE);
-        int deviceWidthMM  = GetDeviceCaps(hdcScreen, HORZSIZE);
-        ReleaseDC(NULL, hdcScreen);
+        int cursorHeight = GetSystemMetrics(SM_CYCURSOR);
+        int cursorWidth = GetSystemMetrics(SM_CXCURSOR);
+        int clientHeight = rect.bottom - rect.top;
+        int clientWidth = rect.right - rect.left;
+
 
         std::wstring text =
-            L"Висота екрану: " + std::to_wstring(deviceHeightMM) + L" мм\n" +
-            L"Ширина екрану: " + std::to_wstring(deviceWidthMM) + L" мм";
+            L"Висота курсору: " + std::to_wstring(cursorHeight) + L"\n" +
+            L"Ширина курсору: " + std::to_wstring(cursorWidth) + L"\n" +
+            L"Висота клієнтської області додатка: " + std::to_wstring(clientHeight) + L"\n" +
+            L"Ширина клієнтської області додатка: " + std::to_wstring(clientWidth);
 
         DrawTextW(hdc, text.c_str(), -1, &rect, DT_CENTER | DT_VCENTER | DT_WORDBREAK);
 
@@ -62,30 +49,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow) {
-    g_hInst = hInstance;
+    hInst = hInstance;
 
-    // Register a window class
     WNDCLASSEXW wc = {0};
     wc.cbSize        = sizeof(WNDCLASSEXW);
-    wc.style         = CS_HREDRAW | CS_VREDRAW;
+    wc.style         = CS_NOCLOSE | CS_VREDRAW | CS_HREDRAW;
     wc.lpfnWndProc   = WndProc;
     wc.hInstance     = hInstance;
-    wc.hCursor       = LoadCursorW(NULL, IDC_ARROW);
-    wc.hIcon         = LoadIconW(NULL, IDI_APPLICATION);
+    wc.hCursor       = LoadCursorW(NULL, IDC_SIZE);
+    wc.hIcon         = LoadIconW(NULL, IDI_WINLOGO);
     wc.hIconSm       = wc.hIcon;
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);               // system color brush
-    wc.lpszClassName = L"Lab1Class";
+    wc.hbrBackground = (HBRUSH)GetStockObject(DKGRAY_BRUSH);               
+    wc.lpszClassName = L"Nahornyi Danylo + Kolyada Maxim";
 
     if (!RegisterClassExW(&wc)) {
         MessageBoxW(NULL, L"RegisterClassEx failed!", L"Error", MB_ICONERROR);
         return 1;
     }
 
-    // Create the window
     HWND hWnd = CreateWindowW(
-        L"Lab1Class", L"Lab1 Window",
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 600, 420,
+        L"Nahornyi Danylo + Kolyada Maxim", L"Lab1 Window",
+        WS_HSCROLL | WS_OVERLAPPEDWINDOW,
+        50, 90, 400, 500,
         NULL, NULL, hInstance, NULL
     );
     if (!hWnd) {
@@ -93,23 +78,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow) {
         return 1;
     }
 
-    // Attach a menu loaded from resources
-    HMENU hMenu = LoadMenuW(hInstance, MAKEINTRESOURCEW(IDR_MAINMENU));
-    SetMenu(hWnd, hMenu);
-
-    // Load accelerators
-    HACCEL hAccel = LoadAcceleratorsW(hInstance, MAKEINTRESOURCEW(IDR_ACCEL));
-
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
 
-    // Message loop that honors accelerators
     MSG msg;
     while (GetMessageW(&msg, NULL, 0, 0)) {
-        if (!TranslateAcceleratorW(hWnd, hAccel, &msg)) {
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
-        }
+        TranslateMessage(&msg);
+        DispatchMessageW(&msg);
     }
     return (int)msg.wParam;
 }
