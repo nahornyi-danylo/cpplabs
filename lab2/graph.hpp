@@ -10,5 +10,4 @@ class graph{
     public:
         bool init(double (*func)(double), double min_x, double max_x);
         void plot(HDC hdc, RECT clientRect);
-        void plotDB(HDC hdc, RECT clientRect);
 };

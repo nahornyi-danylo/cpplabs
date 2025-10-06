@@ -76,19 +76,3 @@ void graph::plot(HDC hdc, RECT clientRect){
     SelectObject(hdc, oldPen);
     DeleteObject(pen);
 }
-
-void graph::plotDB(HDC hdc, RECT clientRect){
-    int width = clientRect.right - clientRect.left;
-    int height = clientRect.bottom - clientRect.top;
-
-    HDC memDC = CreateCompatibleDC(hdc);
-    HBITMAP bmp = CreateCompatibleBitmap(hdc, width, height);
-    SelectObject(memDC, bmp);
-
-    plot(memDC, clientRect);
-
-    BitBlt(hdc, 0, 0, width, height, memDC, 0, 0, SRCCOPY);
-
-    DeleteObject(bmp);
-    DeleteDC(memDC);
-}

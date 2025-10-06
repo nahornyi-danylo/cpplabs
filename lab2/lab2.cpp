@@ -17,7 +17,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             RECT clientRect;
             GetClientRect(hwnd, &clientRect);
 
-            g.plotDB(hdc, clientRect);
+            g.plot(hdc, clientRect);
 
             EndPaint(hwnd, &ps);
             return 0;
