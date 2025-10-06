@@ -5,12 +5,6 @@ static HINSTANCE hInst;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
-        case WM_COMMAND: 
-            switch (LOWORD(wParam)) {
-                default:
-                    return DefWindowProcW(hWnd, msg, wParam, lParam);
-            }
-        
         case WM_PAINT: 
         {
             PAINTSTRUCT ps;
@@ -65,7 +59,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow) {
     }
 
     HWND hWnd = CreateWindowW(
-        L"Nahornyi Danylo + Kolyada Maxim", L"Lab1 Window",
+        L"Nahornyi Danylo + Kolyada Maxim", L"Lab1",
         WS_HSCROLL | WS_OVERLAPPEDWINDOW,
         50, 90, 400, 500,
         NULL, NULL, hInstance, NULL
