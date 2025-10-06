@@ -4,7 +4,7 @@
 static HINSTANCE hInst;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    switch (msg) {
+    switch(msg) {
         case WM_PAINT: 
         {
             PAINTSTRUCT ps;
@@ -74,7 +74,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow) {
     UpdateWindow(hWnd);
 
     MSG msg;
-    while (GetMessageW(&msg, NULL, 0, 0)) {
+    while(GetMessageW(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessageW(&msg);
     }
