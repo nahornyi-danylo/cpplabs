@@ -1,0 +1,24 @@
+#include "common.h"
+#include <windows.h>
+
+
+APP_MENU MENU
+BEGIN
+    POPUP "&*"
+    BEGIN
+        MENUITEM "Show Input Popup", IDM_SHOW_POPUP
+        MENUITEM "Start", IDM_START_BUTTON
+        MENUITEM "Exit (forever)", IDM_EXIT_BUTTON
+    END
+END
+
+IDD_INPUT_DIALOG DIALOGEX 0, 0, 160, 80
+STYLE DS_CENTER | WS_CAPTION | WS_SYSMENU | WS_VISIBLE
+CAPTION "Input"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT       "Enter value:", -1, 10, 10, 60, 10
+    EDITTEXT    IDC_TEXTBOX,   10, 25, 140, 14, ES_AUTOHSCROLL
+    DEFPUSHBUTTON "OK",     IDC_OK,     30, 50, 40, 14
+    PUSHBUTTON   "Cancel", IDC_CANCEL,  90, 50, 40, 14
+END
