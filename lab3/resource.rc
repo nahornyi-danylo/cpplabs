@@ -6,9 +6,8 @@ APP_MENU MENU
 BEGIN
     POPUP "&*"
     BEGIN
-        MENUITEM "Show Input Popup", IDM_SHOW_POPUP
+        MENUITEM "Thread count", IDM_SHOW_POPUP
         MENUITEM "Start", IDM_START_BUTTON
-        MENUITEM "Exit (forever)", IDM_EXIT_BUTTON
     END
 END
 

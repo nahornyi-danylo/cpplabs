@@ -10,6 +10,7 @@
 #include "common.h"
 
 // ======================================
+// Extra task globals 
 #define ARR_LEN 10000
 unsigned int nThreads = 1;
 int array[ARR_LEN];
@@ -26,20 +27,38 @@ enum {
   EXIT,
 } masterThreadEventType;
 
-struct workerInfo{
+struct workerInfo {
     int id;
     int threadCount;
 };
 
-INT_PTR CALLBACK InputDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam) {
-    switch (msg) {
-        case WM_COMMAND:
-        switch (LOWORD(wParam)) {
-            case IDC_OK: {
-                wchar_t buffer[256];
-                if(!GetDlgItemText(hDlg, IDC_TEXTBOX, buffer, 256)) return 0;
+// Main task globals
 
-                for(int i = 0; i<256 && buffer[i]; i++){
+struct drawInfo {
+    unsigned int num;
+    POINT pos;
+    HANDLE threadHandle;
+    bool shouldStop;
+
+    std::list<drawInfo>::iterator selfIterator;
+};
+
+std::list<drawInfo> drawList;
+HANDLE drawListMutex;
+HWND hWnd;
+
+// ======================================
+
+INT_PTR CALLBACK InputDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam){
+    switch(msg){
+        case WM_COMMAND:
+        switch (LOWORD(wParam)){
+            case IDC_OK:
+            {
+                wchar_t buffer[64];
+                if(!GetDlgItemText(hDlg, IDC_TEXTBOX, buffer, 64)) return 0;
+
+                for(int i = 0; i<64 && buffer[i]; i++){
                     if(!(buffer[i] <= '9' && buffer[i] >= '0')) return 0;
                 }
 
@@ -102,35 +121,36 @@ DWORD WINAPI masterThread(LPVOID lpParam){
         WaitForSingleObject(masterThreadEvent, INFINITE);
         switch(masterThreadEventType){
             case START:
-                {
-                    int localThreadCount = nThreads;
+            {
+                int localThreadCount = nThreads;
 
-                    for(int i = 0; i<ARR_LEN; i++){
-                        array[i] = rand();
-                    }
-
-                    sum = 0;
-                    done = 0;
-
-                    std::vector<workerInfo> info;
-                    info.reserve(localThreadCount);
-                    
-                    for(int i = 0; i<localThreadCount; i++){
-                        info.push_back({.id = i, .threadCount = localThreadCount});
-                        workerThreadsVector.push_back(CreateThread(NULL, 0, workerThread, &info[i], 0, NULL));
-                    }
-
-                    WaitForMultipleObjects(localThreadCount, workerThreadsVector.data(), TRUE, INFINITE);
-                    ResetEvent(halfdoneEvent);
-                    std::cout << "result = " + std::to_string(sum) + "\n";
-
-                    for(HANDLE h : workerThreadsVector){
-                        CloseHandle(h);
-                    }
-                    workerThreadsVector.clear();
-
-                    break;
+                for(int i = 0; i<ARR_LEN; i++){
+                    array[i] = rand();
                 }
+
+                sum = 0;
+                done = 0;
+
+                std::vector<workerInfo> info;
+                info.reserve(localThreadCount);
+                
+                for(int i = 0; i<localThreadCount; i++){
+                    info.push_back({.id = i, .threadCount = localThreadCount});
+                    workerThreadsVector.push_back(CreateThread(NULL, 0, workerThread, &info[i], 0, NULL));
+                }
+
+                WaitForMultipleObjects(localThreadCount, workerThreadsVector.data(), TRUE, INFINITE));
+
+                ResetEvent(halfdoneEvent);
+                printf("result = %u\n", sum);
+
+                for(HANDLE h : workerThreadsVector){
+                    CloseHandle(h);
+                }
+                workerThreadsVector.clear();
+
+                break;
+            }
             case EXIT:
                 shouldExit = true;
                 break;
@@ -140,22 +160,7 @@ DWORD WINAPI masterThread(LPVOID lpParam){
     ExitThread(0);
 }
 
-// ======================================
 
-struct drawInfo{
-    unsigned int num;
-    POINT pos;
-    HANDLE threadHandle;
-    bool shouldStop;
-
-    std::list<drawInfo>::iterator selfIterator;
-};
-
-
-
-std::list<drawInfo> drawList;
-HANDLE drawListMutex;
-HWND hWnd;
 
 
 double getDistance(POINT a, POINT b){
@@ -184,25 +189,22 @@ DWORD WINAPI threadProc(LPVOID lpParam){
 
 
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    switch(msg) {
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
+    switch(msg){
         case WM_COMMAND:
             switch(LOWORD(wParam)){
                 case IDM_SHOW_POPUP:
-                    std::cout << "current number of threads is " + std::to_string(nThreads) + "\n";
+                    printf("current number of threads is %u\n", nThreads);
                     DialogBox((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), MAKEINTRESOURCE(IDD_INPUT_DIALOG), hWnd, InputDlgProc);
                     break;
                 case IDM_START_BUTTON:
-                    std::cout << "start button pressed with " + std::to_string(nThreads) + " threads\n";
+                    printf("start button pressed with %u threads\n", nThreads);
                     masterThreadEventType = START;
-                    SetEvent(masterThreadEvent);
-                    break;
-                case IDM_EXIT_BUTTON:
-                    masterThreadEventType = EXIT;
                     SetEvent(masterThreadEvent);
                     break;
             }
             return 0;
+
         case WM_DESTROY:
             WaitForSingleObject(drawListMutex, INFINITE);
             for(drawInfo &item : drawList){
@@ -220,7 +222,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         {
             POINT p;
             if(!GetCursorPos(&p) || !ScreenToClient(hWnd, &p)){
-              std::cout << "error while getting the cursor position\n";
+              printf("error while getting the cursor position\n");
               return -1;
             }
             printf("mouse 1 was clicked at %d %d\n", p.x, p.y);
@@ -242,7 +244,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         {
             POINT p;
             if(!GetCursorPos(&p) || !ScreenToClient(hWnd, &p)){
-              std::cout << "error while getting the cursor position\n";
+              printf("error while getting the cursor position\n");
               return -1;
             }
             printf("mouse 2 was clicked at %d %d\n", p.x, p.y);
@@ -281,8 +283,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             WaitForSingleObject(drawListMutex, INFINITE);
             for(drawInfo &item : drawList){
                 std::wstring text = L"{" + std::to_wstring(item.pos.x) + L", "
-                  + std::to_wstring(item.pos.y) + L"}, " +
-                  std::to_wstring(item.num); 
+                    + std::to_wstring(item.pos.y) + L"}, " +
+                    std::to_wstring(item.num); 
 
                 TextOutW(hdc, item.pos.x, item.pos.y, text.c_str(), text.length());
             }
@@ -298,7 +300,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow){
     WNDCLASSEXW wc = {0};
     wc.cbSize        = sizeof(WNDCLASSEXW);
     wc.style         = CS_VREDRAW | CS_HREDRAW;
@@ -308,7 +310,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1); 
     wc.lpszClassName = L"lab3";
 
-    if (!RegisterClassExW(&wc)) {
+    if (!RegisterClassExW(&wc)){
         MessageBoxW(NULL, L"RegisterClassEx failed!", L"Error", MB_ICONERROR);
         return 1;
     }
@@ -320,7 +322,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         NULL, LoadMenu(hInstance, MAKEINTRESOURCE(APP_MENU)), hInstance, NULL     
     );
 
-    if (!hWnd) {
+    if (!hWnd){
         MessageBoxW(NULL, L"CreateWindow failed!", L"Error", MB_ICONERROR);
         return 1;
     }
@@ -336,7 +338,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     UpdateWindow(hWnd);
 
     MSG msg;
-    while(GetMessage(&msg, NULL, 0, 0)) {
+    while(GetMessage(&msg, NULL, 0, 0)){
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
