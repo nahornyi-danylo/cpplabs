@@ -139,7 +139,7 @@ DWORD WINAPI masterThread(LPVOID lpParam){
                     workerThreadsVector.push_back(CreateThread(NULL, 0, workerThread, &info[i], 0, NULL));
                 }
 
-                WaitForMultipleObjects(localThreadCount, workerThreadsVector.data(), TRUE, INFINITE));
+                WaitForMultipleObjects(localThreadCount, workerThreadsVector.data(), TRUE, INFINITE);
 
                 ResetEvent(halfdoneEvent);
                 printf("result = %u\n", sum);
