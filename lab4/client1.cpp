@@ -93,7 +93,7 @@ void sendToServer(HWND hWnd){
 
     uint32_t size = data.size() * sizeof(wchar_t);
     if(send(clientSocket, (const char *)&size, 4, 0) != SOCKET_ERROR &&
-       send(clientSocket, reinterpret_cast<const char *>(data.data()), size, 0) != SOCKET_ERROR){
+       send(clientSocket, (const char *)data.data(), size, 0) != SOCKET_ERROR){
         EditAppendText(hWndEdit, L"Successfully sent\r\n");
     }
     else{

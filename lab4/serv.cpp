@@ -154,7 +154,7 @@ void onEvent(HWND hWnd, WPARAM wParam, LPARAM lParam){
 
                 std::wstring buf;
                 buf.resize(size + 1);
-                if(!recvN((SOCKET)wParam, reinterpret_cast<char *>(&buf[0]), size)) return;
+                if(!recvN((SOCKET)wParam, (char *)&buf[0], size)) return;
                 else{
                     int count = size / sizeof(wchar_t);
                     buf[count] = L'\0';

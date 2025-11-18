@@ -73,7 +73,7 @@ void disconnectFromServer(HWND hWnd){
 
 void sendToServer(HWND hWnd){
     int menuFontSize = GetSystemMetrics(SM_CYSMCAPTION);
-    // SM_CXFIXEDFRAME has nothing to do wiht color depth but whatever
+    // SM_CXFIXEDFRAME has nothing to do with color depth but whatever
     int panelColorDepth = GetSystemMetrics(SM_CXFIXEDFRAME);
     HDC hdc = GetDC(NULL);
     int numColors = GetDeviceCaps(hdc, NUMCOLORS);
@@ -87,7 +87,7 @@ void sendToServer(HWND hWnd){
 
     uint32_t size = data.size() * sizeof(wchar_t);
     if(send(clientSocket, (const char *)&size, 4, 0) != SOCKET_ERROR &&
-       send(clientSocket, reinterpret_cast<const char *>(data.data()), size, 0) != SOCKET_ERROR){
+       send(clientSocket, (const char *)data.data(), size, 0) != SOCKET_ERROR){
         EditAppendText(hWndEdit, L"Successfully sent\r\n");
     }
     else{
