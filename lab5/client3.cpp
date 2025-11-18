@@ -59,6 +59,8 @@ INT_PTR CALLBACK InputDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                 return 0;
             }
             case IDC_CANCEL:
+                if(inputSuccessA) inputSuccessB = false;
+                else inputSuccessA = false;
                 EndDialog(hDlg, 0);
                 return 0;
             }
