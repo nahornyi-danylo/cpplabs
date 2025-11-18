@@ -11,7 +11,7 @@ HWND hWndEdit;
 HANDLE hMailslot;
 LPCWSTR mailslotPath = L"\\\\.\\mailslot\\lab5";
 
-void EditAppendText(HWND hEdit, const wchar_t *text) {
+void EditAppendText(HWND hEdit, const wchar_t *text){
     int len = GetWindowTextLengthW(hEdit);
     SendMessageW(hEdit, EM_SETSEL, (WPARAM)len, (LPARAM)len);
 
@@ -28,7 +28,10 @@ void sendToServer(HWND hWnd){
     int dpiX = GetDeviceCaps(hdc, LOGPIXELSX);
     ReleaseDC(NULL, hdc);
 
-    std::wstring data = L"From client 2\r\nВисота рядка стану = " + std::to_wstring(cyEdge) + L"\r\nШирина панелі повідомлень = " + std::to_wstring(cxEdge) + L"\r\nHorizontal DPI = " + std::to_wstring(dpiX);
+    std::wstring data = L"From client 2\r\nВисота рядка стану = " +
+      std::to_wstring(cyEdge) + L"\r\nШирина панелі повідомлень = " +
+      std::to_wstring(cxEdge) + L"\r\nHorizontal DPI = " +
+      std::to_wstring(dpiX);
 
     EditAppendText(hWndEdit, L"Sending message:\r\n");
     EditAppendText(hWndEdit, data.c_str());

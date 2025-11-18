@@ -15,7 +15,7 @@ unsigned int b;
 bool inputSuccessA = false;
 bool inputSuccessB = false;
 
-void EditAppendText(HWND hEdit, const wchar_t *text) {
+void EditAppendText(HWND hEdit, const wchar_t *text){
     int len = GetWindowTextLengthW(hEdit);
     SendMessageW(hEdit, EM_SETSEL, (WPARAM)len, (LPARAM)len);
 
@@ -78,7 +78,9 @@ void sendToServer(HWND hWnd){
 
     if(!(inputSuccessA && inputSuccessB)) return;
 
-    std::wstring data = L"From client 3\r\nA = " + std::to_wstring(a) + L"\r\nB = " + std::to_wstring(b) + L"\r\nA * B = " + std::to_wstring(a * b) + L"\r\n";
+    std::wstring data = L"From client 3\r\nA = " + std::to_wstring(a) + L"\r\nB
+      = " + std::to_wstring(b) + L"\r\nA * B = " + std::to_wstring(a * b) +
+      L"\r\n";
 
     EditAppendText(hWndEdit, L"Sending message:\r\n");
     EditAppendText(hWndEdit, data.c_str());

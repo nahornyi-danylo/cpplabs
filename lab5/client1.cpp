@@ -11,7 +11,7 @@ HWND hWndEdit;
 HANDLE hMailslot;
 LPCWSTR mailslotPath = L"\\\\.\\mailslot\\lab5";
 
-void EditAppendText(HWND hEdit, const wchar_t *text) {
+void EditAppendText(HWND hEdit, const wchar_t *text){
     int len = GetWindowTextLengthW(hEdit);
     SendMessageW(hEdit, EM_SETSEL, (WPARAM)len, (LPARAM)len);
 
@@ -43,7 +43,9 @@ void sendToServer(HWND hWnd){
     int width = GetDeviceCaps(hdc, HORZRES);
     ReleaseDC(NULL, hdc);
 
-    std::wstring data = L"From client 1\r\nInstalled RAM size = " + std::to_wstring(ramSize) + L" kb\r\nExternal drive state = " + std::to_wstring(extDrive) + L"\r\nHORZRES = " + std::to_wstring(width);
+    std::wstring data = L"From client 1\r\nОбсяг оперативної пам'яті = " +
+      std::to_wstring(ramSize) + L" kb\r\nНаявність зовнішнього диску = " +
+      std::to_wstring(extDrive) + L"\r\nHORZRES = " + std::to_wstring(width);
 
     EditAppendText(hWndEdit, L"Sending message:\r\n");
     EditAppendText(hWndEdit, data.c_str());

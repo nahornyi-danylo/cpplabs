@@ -13,7 +13,7 @@ HWND hWndEdit;
 HANDLE hMailslot;
 LPCWSTR mailslotPath = L"\\\\.\\mailslot\\lab5";
 
-void EditAppendText(HWND hEdit, const wchar_t *text) {
+void EditAppendText(HWND hEdit, const wchar_t *text){
     int len = GetWindowTextLengthW(hEdit);
     SendMessageW(hEdit, EM_SETSEL, (WPARAM)len, (LPARAM)len);
 
@@ -58,7 +58,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
                 case ID_TIMER:
                     DWORD mSize, mCount, bytesRead;
                     bool res = GetMailslotInfo(hMailslot, NULL, &mSize, &mCount, NULL);
-                    if(res && mCount != 0){
+                    if(res && mCount){
                         std::wstring buf;
                         buf.resize(mSize);
                         ReadFile(hMailslot, buf.data(), mSize, &bytesRead, NULL);
