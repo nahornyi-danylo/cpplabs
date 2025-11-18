@@ -1,0 +1,4 @@
+#define APP_MENU 1001
+#define ID_CONNECT 2001
+#define ID_SEND 2002
+#define ID_DISCONNECT 2003

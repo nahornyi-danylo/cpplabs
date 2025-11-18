@@ -1,0 +1,3 @@
+#define APP_MENU 1001
+#define ID_SERVER_START 2001
+#define ID_SERVER_STOP 2002

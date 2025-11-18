@@ -1,0 +1,10 @@
+#include "commonClient.h"
+#include <windows.h>
+
+
+APP_MENU MENU
+BEGIN
+    MENUITEM "Connect", ID_CONNECT
+    MENUITEM "Send", ID_SEND
+    MENUITEM "Disconnect", ID_DISCONNECT
+END
