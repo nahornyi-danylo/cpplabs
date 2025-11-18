@@ -6,6 +6,12 @@
 #include "common.h"
 
 
+#define ID_TIMER 3001
+
+HINSTANCE hInst;
+HWND hWndEdit;
+HANDLE hMailslot;
+LPCWSTR mailslotPath = L"\\\\.\\mailslot\\lab5";
 
 void EditAppendText(HWND hEdit, const wchar_t *text) {
     int len = GetWindowTextLengthW(hEdit);
@@ -25,26 +31,43 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
             return 0;
         case WM_COMMAND:
             switch(LOWORD(wParam)){
-                case ID_SERVER_START:
-                    serverStart(hwnd);
+                case ID_MAILSLOT_CREATE:
+                    EditAppendText(hWndEdit, L"Creating mailslot\r\n");
+                    hMailslot = CreateMailslotW(mailslotPath, 0, MAILSLOT_WAIT_FOREVER, NULL);
+                    if(hMailslot == INVALID_HANDLE_VALUE){
+                        EditAppendText(hWndEdit, L"Could not create a mailslot\r\n");
+                        return 0;
+                    }
+                    EditAppendText(hWndEdit, L"Mailslot created successfully!\r\n");
+                    SetTimer(hwnd, ID_TIMER, 1000, (TIMERPROC)NULL);
                     return 0;
-                case ID_SERVER_STOP:
-                    serverStop(hwnd);
+                case ID_MAILSLOT_CLOSE:
+                    CloseHandle(hMailslot);
+                    EditAppendText(hWndEdit, L"Mailslot closed!\r\n");
                     return 0;
             }
             return 0;
 
         case WM_DESTROY:
-            WSACleanup();
+            CloseHandle(hMailslot);
             PostQuitMessage(0);
             return 0;
 
-        case WSA_ACCEPT:
-            onAccept(hwnd, lParam);
-            return 0;
-
-        case WSA_NETEVENT:
-            onEvent(hwnd, wParam, lParam);
+        case WM_TIMER:
+            switch(wParam){
+                case ID_TIMER:
+                    DWORD mSize, mCount, bytesRead;
+                    bool res = GetMailslotInfo(hMailslot, NULL, &mSize, &mCount, NULL);
+                    if(res && mCount != 0){
+                        std::wstring buf;
+                        buf.resize(mSize);
+                        ReadFile(hMailslot, buf.data(), mSize, &bytesRead, NULL);
+                        EditAppendText(hWndEdit, L"Read data:\r\n");
+                        EditAppendText(hWndEdit, buf.c_str());
+                        EditAppendText(hWndEdit, L"\r\n");
+                    }
+                    return 0;
+            }
             return 0;
 
         default:

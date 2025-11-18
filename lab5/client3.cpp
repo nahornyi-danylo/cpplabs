@@ -3,20 +3,17 @@
 #include <stdio.h>
 #include <string>
 #include <cstdint>
+#include <wininet.h>
 #include "commonClient.h"
 
-
-#define PORT 12345
-#define WSA_NETEVENT (WM_USER + 1)
-
-SOCKET clientSocket = INVALID_SOCKET;
-SOCKADDR_IN serverInfo;
-
-HWND hWndEdit;
 HINSTANCE hInst;
-WSADATA wsaData;
-WORD wVersionRequested = MAKEWORD(2, 2);
-int currClientId = 0;
+HWND hWndEdit;
+HANDLE hMailslot;
+LPCWSTR mailslotPath = L"\\\\.\\mailslot\\lab5";
+unsigned int a;
+unsigned int b;
+bool inputSuccessA = false;
+bool inputSuccessB = false;
 
 void EditAppendText(HWND hEdit, const wchar_t *text) {
     int len = GetWindowTextLengthW(hEdit);
@@ -25,93 +22,77 @@ void EditAppendText(HWND hEdit, const wchar_t *text) {
     SendMessageW(hEdit, EM_REPLACESEL, 0, (LPARAM)text);
 }
 
-void connectToServer(HWND hWnd){
-    if(WSAStartup(wVersionRequested, &wsaData)){
-        MessageBoxW(hWnd, L"WSAStartup failed", L"Error", MB_OK | MB_ICONERROR);
-        return;
+INT_PTR CALLBACK InputDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam){
+    switch(msg){
+        case WM_COMMAND:
+        switch (LOWORD(wParam)){
+            case IDC_OK:
+            {
+                wchar_t buffer[64];
+                if(!GetDlgItemText(hDlg, IDC_TEXTBOX, buffer, 64)){
+                    EditAppendText(hWndEdit, L"Invalid input!\r\n");
+                    if(inputSuccessA) inputSuccessB = false;
+                    else inputSuccessA = false;
+                    return 0;
+                }
+                for(int i = 0; i<64 && buffer[i]; i++){
+                    if(!(buffer[i] <= '9' && buffer[i] >= '0')){
+                        EditAppendText(hWndEdit, L"Invalid input!\r\n");
+                        if(inputSuccessA) inputSuccessB = false;
+                        else inputSuccessA = false;
+                        return 0;
+                    }
+                }
+
+                unsigned int num = std::stoi(buffer);
+
+                if(inputSuccessA){
+                    b = num;
+                    inputSuccessB = true;
+                }
+                else{
+                    a = num;
+                    inputSuccessA = true;
+                }
+                
+                EndDialog(hDlg, 1);
+                return 0;
+            }
+            case IDC_CANCEL:
+                EndDialog(hDlg, 0);
+                return 0;
+            }
+        break;
     }
-
-    clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if(clientSocket == INVALID_SOCKET){
-        MessageBoxW(hWnd, L"Could not create server socket", L"Error", MB_OK | MB_ICONERROR);
-        return;
-    }
-
-    PHOSTENT p = gethostbyname("localhost");
-    if(!p){
-        closesocket(clientSocket);
-        return;
-    }
-
-    serverInfo.sin_family = AF_INET;
-    serverInfo.sin_port = htons(PORT);
-    serverInfo.sin_addr = *(struct in_addr *)p->h_addr;
-
-    if(connect(clientSocket, (PSOCKADDR)&serverInfo, sizeof(serverInfo)) == SOCKET_ERROR){
-        closesocket(clientSocket);
-        MessageBoxW(hWnd, L"Could not connect", L"Error", MB_OK | MB_ICONERROR);
-        return;
-    }
-
-    if(WSAAsyncSelect(clientSocket, hWnd, WSA_NETEVENT, FD_READ | FD_CLOSE)){
-        MessageBoxW(hWnd, L"WSAAsyncSelect failed", L"Error", MB_OK | MB_ICONERROR);
-        return;
-    }
-
-    EditAppendText(hWndEdit, L"Connected\r\n");
-}
-
-void disconnectFromServer(HWND hWnd){
-    WSAAsyncSelect(clientSocket, hWnd, 0, 0);
-    if(clientSocket != INVALID_SOCKET){
-        closesocket(clientSocket);
-        clientSocket = INVALID_SOCKET;
-        WSACleanup();
-        EditAppendText(hWndEdit, L"Disconnected\r\n");
-    }
+    return 0;
 }
 
 void sendToServer(HWND hWnd){
-    static bool started = false;
-    static std::wstring data;
-    if(!started){
-        int len = GetWindowTextLengthW(hWndEdit);
-        data.resize(len + 1);
-        GetWindowTextW(hWndEdit, &data[0], len + 1);
-        data[len] = L'\0';
+    DWORD bytesWritten;
 
-        SendMessageW(hWndEdit, EM_SETREADONLY, FALSE, 0);
-        SendMessageW(hWndEdit, WM_SETTEXT, 0, (LPARAM)L"");
-
-        started = true;
-    }
-    else{
-        int len = GetWindowTextLengthW(hWndEdit);
-
-        std::wstring input;
-        input.resize(len + 1);
-        GetWindowTextW(hWndEdit, &input[0], len + 1);
-        input[len] = L'\0';
-
-        SendMessageW(hWndEdit, EM_SETREADONLY, TRUE, 0);
-        SendMessageW(hWndEdit, WM_SETTEXT, 0, (LPARAM)data.c_str());
-        EditAppendText(hWndEdit, L"Typed message:\r\n");
-        EditAppendText(hWndEdit, input.c_str());
-        EditAppendText(hWndEdit, L"\r\n");
-
-        // code for sending
-        uint32_t size = input.size() * sizeof(wchar_t);
-        if(send(clientSocket, (const char *)&size, 4, 0) != SOCKET_ERROR &&
-           send(clientSocket, reinterpret_cast<const char *>(input.data()), size, 0) != SOCKET_ERROR){
-            EditAppendText(hWndEdit, L"Successfully sent\r\n");
-        }
-        else{
-            EditAppendText(hWndEdit, L"Could not send\r\n");
-        }
-        
-        started = false;
+ 
+    DialogBox((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), MAKEINTRESOURCE(IDD_INPUT_DIALOGA), hWnd, InputDlgProc);
+    if(inputSuccessA){
+        DialogBox((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), MAKEINTRESOURCE(IDD_INPUT_DIALOGB), hWnd, InputDlgProc);
     }
 
+    if(!(inputSuccessA && inputSuccessB)) return;
+
+    std::wstring data = L"From client 3\r\nA = " + std::to_wstring(a) + L"\r\nB = " + std::to_wstring(b) + L"\r\nA * B = " + std::to_wstring(a * b) + L"\r\n";
+
+    EditAppendText(hWndEdit, L"Sending message:\r\n");
+    EditAppendText(hWndEdit, data.c_str());
+    EditAppendText(hWndEdit, L"\r\n");
+
+    uint32_t size = data.size() * sizeof(wchar_t);
+    hMailslot = CreateFile(mailslotPath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+    if(hMailslot == INVALID_HANDLE_VALUE){
+        EditAppendText(hWndEdit, L"Could not open the mailslot\r\n");
+        return;
+    }
+    WriteFile(hMailslot, data.data(), size, &bytesWritten, NULL);
+    EditAppendText(hWndEdit, L"Sent successfully!\r\n");
+    CloseHandle(hMailslot);
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
@@ -124,30 +105,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
             return 0;
         case WM_COMMAND:
             switch(LOWORD(wParam)){
-                case ID_CONNECT:
-                    connectToServer(hwnd);
-                    return 0;
                 case ID_SEND:
                     sendToServer(hwnd);
-                    return 0;
-                case ID_DISCONNECT:
-                    disconnectFromServer(hwnd);
                     return 0;
             }
             return 0;
 
         case WM_DESTROY:
-            WSACleanup();
             PostQuitMessage(0);
-            return 0;
-
-        case WSA_NETEVENT:
-            if(WSAGETSELECTEVENT(lParam) == FD_CLOSE){
-                EditAppendText(hWndEdit, L"Server closed\r\n");
-                closesocket(clientSocket);
-                WSAAsyncSelect(clientSocket, hwnd, 0, 0);
-                WSACleanup();
-            }
             return 0;
 
         default:
@@ -164,7 +129,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     wc.hInstance     = hInstance;      
     wc.hCursor       = LoadCursorW(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1); 
-    wc.lpszClassName = L"lab4 client3";
+    wc.lpszClassName = L"lab5 client3";
 
     if (!RegisterClassExW(&wc)){
         MessageBoxW(NULL, L"RegisterClassEx failed!", L"Error", MB_ICONERROR);
@@ -172,7 +137,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     }
 
     HWND hWnd = CreateWindowW(
-        L"lab4 client3", L"lab4 client3",
+        L"lab5 client3", L"lab5 client3",
         WS_OVERLAPPEDWINDOW,   
         CW_USEDEFAULT, CW_USEDEFAULT, 600, 480,
         NULL, LoadMenu(hInstance, MAKEINTRESOURCE(APP_MENU)), hInstance, NULL     
