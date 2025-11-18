@@ -79,7 +79,7 @@ void sendToServer(HWND hWnd){
     if(!(inputSuccessA && inputSuccessB)) return;
 
     std::wstring data = L"From client 3\r\nA = " + std::to_wstring(a) + L"\r\nB
-      = " + std::to_wstring(b) + L"\r\nA * B = " + std::to_wstring(a * b) +
+      + " + std::to_wstring(b) + L"\r\nA * B = " + std::to_wstring(a * b) +
       L"\r\n";
 
     EditAppendText(hWndEdit, L"Sending message:\r\n");
