@@ -1,0 +1,10 @@
+#include "common.h"
+#include <windows.h>
+
+
+APP_MENU MENU
+BEGIN
+    MENUITEM "mmap Create", ID_CREATE
+    MENUITEM "mmap Close", ID_CLOSE
+END
+
