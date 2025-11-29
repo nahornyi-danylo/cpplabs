@@ -1,0 +1,3 @@
+#define APP_MENU 1001
+#define ID_CREATE 2001
+#define ID_CLOSE 2002

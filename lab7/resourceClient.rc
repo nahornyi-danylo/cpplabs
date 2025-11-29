@@ -1,0 +1,8 @@
+#include "commonClient.h"
+#include <windows.h>
+
+
+APP_MENU MENU
+BEGIN
+    MENUITEM "Send", ID_SEND
+END

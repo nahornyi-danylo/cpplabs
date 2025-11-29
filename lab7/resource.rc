@@ -1,0 +1,10 @@
+#include "common.h"
+#include <windows.h>
+
+
+APP_MENU MENU
+BEGIN
+    MENUITEM "Open pipe", ID_CREATE
+    MENUITEM "Close pipe", ID_CLOSE
+END
+
