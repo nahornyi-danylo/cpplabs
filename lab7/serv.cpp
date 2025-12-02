@@ -29,17 +29,30 @@ DWORD WINAPI workerThread(LPVOID lpParam){
 
     while(!workerShouldStop){
         bool connected = ConnectNamedPipe(hPipe, NULL);
-        if(!connected){
-            if(workerShouldStop) break;
-            buf[0] = L'\0';
-            PostMessage(hwnd, WM_READPIPE, 0, 0);
-            continue;
+        if (!connected) {
+            DWORD err = GetLastError();
+
+            if(err == ERROR_PIPE_CONNECTED){
+                connected = TRUE;
+            }
+            else if(err == ERROR_NO_DATA){
+                continue;
+            }
+            else{
+                if(workerShouldStop) break;
+                continue;
+            }
         }
+
 
         DWORD read = 0;
 
         if(ReadFile(hPipe, buf, sizeof(buf), &read, NULL)){
             buf[read / sizeof(wchar_t)] = L'\0';
+            PostMessage(hwnd, WM_READPIPE, 0, 0);
+        }
+        else{
+            buf[0] = L'\0';
             PostMessage(hwnd, WM_READPIPE, 0, 0);
         }
 
