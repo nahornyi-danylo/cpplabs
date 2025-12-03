@@ -96,10 +96,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 
                 case ID_CLOSE:
                     workerShouldStop = true;
+                    CancelSynchronousIo(workerHandle);
+
                     CloseHandle(hPipe);
                     EditAppendText(hWndEdit, L"Pipe closed!\r\n");
 
-                    WaitForSingleObject(workerHandle, INFINITE);
                     CloseHandle(workerHandle);
                     return 0;
             }
@@ -107,9 +108,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 
         case WM_DESTROY:
             workerShouldStop = true;
+            CancelSynchronousIo(workerHandle);
+
             CloseHandle(hPipe);
 
-            WaitForSingleObject(workerHandle, INFINITE);
             CloseHandle(workerHandle);
             PostQuitMessage(0);
             return 0;
